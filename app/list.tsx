@@ -1,39 +1,56 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, StyleSheet, ScrollView, TouchableOpacity, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import TaskItem from "@/components/task";
+import { useLocalSearchParams } from "expo-router";
+import { api } from "../api";
 
 export default function List() {
-  // TODO: Récupérer la liste et les tâches depuis l'API
-  const [listName] = useState("Courses");
-  const [tasks, setTasks] = useState([
-    { id: "1", name: "Acheter du lait", completer: false },
-    { id: "2", name: "Œufs", completer: true },
-    { id: "3", name: "Pain", completer: false },
-  ]);
+  const { id: listId, name: listName } = useLocalSearchParams<{ id: string; name: string }>();
+  const [tasks, setTasks] = useState<any[]>([]);
 
-  const handleToggleTask = (id: string, completer: boolean) => {
-    // TODO: Appel API pour mettre à jour
-    setTasks(tasks.map(task => 
-      task.id === id ? { ...task, completer } : task
-    ));
+  useEffect(() => {
+    const fetchTasks = async () => {
+      if (!listId) return;
+      const response = await api.post("/task/tasks_by_list", { listId });
+      if (response.ok && response.data?.tasks) {
+        setTasks(response.data.tasks.map((t: any) => ({ id: t._id, name: t.name, completer: t.completer })));
+      }
+    };
+    fetchTasks();
+  }, [listId]);
+
+  const handleToggleTask = async (id: string, completer: boolean) => {
+    const response = await api.patch("/task/update_task", { _id: id, completer });
+    if (response.ok && response.data?.updatedTask) {
+      setTasks(tasks.map(task =>
+        task.id === id ? { ...task, completer: response.data.updatedTask.completer } : task
+      ));
+    }
   };
 
-  const handleUpdateTask = (id: string, newName: string) => {
-    // TODO: Appel API pour mettre à jour
-    setTasks(tasks.map(task => 
-      task.id === id ? { ...task, name: newName } : task
-    ));
+  const handleUpdateTask = async (id: string, newName: string) => {
+    const response = await api.patch("/task/update_task", { _id: id, new_name: newName });
+    if (response.ok && response.data?.updatedTask) {
+      setTasks(tasks.map(task =>
+        task.id === id ? { ...task, name: response.data.updatedTask.name } : task
+      ));
+    }
   };
 
-  const handleDeleteTask = (id: string) => {
-    // TODO: Appel API pour supprimer
-    setTasks(tasks.filter(task => task.id !== id));
+  const handleAddTask = async () => {
+    if (!listId) return;
+    const response = await api.post("/task/ajout_task", { name: "Nouvelle tâche", listId });
+    if (response.ok && response.data?.task) {
+      setTasks([...tasks, { id: response.data.task._id, name: response.data.task.name, completer: response.data.task.completer }]);
+    }
   };
 
-  const handleAddTask = () => {
-    // TODO: Ouvrir modal pour créer une nouvelle tâche
-    console.log("Créer une nouvelle tâche");
+  const handleDeleteTask = async (id: string) => {
+    const response = await api.post("/task/delete_task", { _id: id });
+    if (response.ok) {
+      setTasks(tasks.filter(task => task.id !== id));
+    }
   };
 
   const completedCount = tasks.filter(t => t.completer).length;

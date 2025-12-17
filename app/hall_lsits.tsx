@@ -1,25 +1,63 @@
-import React, { useState } from "react";
-import { View, StyleSheet, ScrollView, TouchableOpacity, Text } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, ScrollView, TouchableOpacity, Text, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import ListItem from "@/components/lists";
-import api from "../../services/api";
+import { api } from "../api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+
+interface List {
+  id: string;
+  name: string;
+}
 
 export default function HallLists() {
-  // TODO: Récupérer les listes depuis l'API
-  const [lists, setLists] = useState([
-    { id: "1", name: "Courses" },
-    { id: "2", name: "Travail" },
-    { id: "3", name: "Maison" },
-  ]);
+  const [lists, setLists] = useState<List[]>([]);
+  const [userId, setUserId] = useState("");
+  const router = useRouter();
 
-  const handleDeleteList = (id: string) => {
-    // TODO: Appel API pour supprimer
-    setLists(lists.filter(list => list.id !== id));
+  useEffect(() => {
+    const fetchUserIdAndLists = async () => {
+      const id = await AsyncStorage.getItem("userId");
+      if (id) {
+        setUserId(id);
+        fetchLists(id);
+      }
+    };
+    fetchUserIdAndLists();
+  }, []);
+
+  const fetchLists = async (id: string) => {
+    try {
+      const response = await api.post("/list/list", { user: id });
+      const data = response.data as { lists?: any[] };
+      if (response.ok && data.lists) {
+        setLists(data.lists.map(l => ({ id: l._id, name: l.name })));
+      }
+    } catch (e) {
+      Alert.alert("Erreur", "Impossible de charger les listes");
+    }
   };
 
-  const handleAddList = () => {
-    // TODO: Ouvrir modal pour créer une nouvelle liste
-    console.log("Créer une nouvelle liste");
+  const handleDeleteList = async (id: string) => {
+    try {
+      await api.post("/list/delete_list", { _id: id });
+      setLists(lists.filter(list => list.id !== id));
+    } catch {
+      Alert.alert("Erreur", "Suppression impossible");
+    }
+  };
+
+  const handleAddList = async () => {
+    try {
+      const response = await api.post("/list/ajout_list", { name: "Nouvelle liste", user: userId });
+      const data = response.data as { list?: any };
+      if (response.ok && data.list) {
+        setLists([...lists, { id: data.list._id, name: data.list.name }]);
+      }
+    } catch {
+      Alert.alert("Erreur", "Ajout impossible");
+    }
   };
 
   return (
@@ -38,8 +76,7 @@ export default function HallLists() {
                 id={list.id}
                 name={list.name}
                 onPress={() => {
-                  // TODO: Navigation vers la liste détaillée
-                  console.log("Ouvrir la liste:", list.name);
+                  router.push({ pathname: '/list', params: { id: list.id, name: list.name } });
                 }}
                 onDelete={() => handleDeleteList(list.id)}
               />

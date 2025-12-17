@@ -1,19 +1,43 @@
 import React, { useState } from "react";
+import { useRouter } from "expo-router";
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { api } from "../api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// Définition du type de réponse attendu de l'API
+type LoginResponse = {
+  ok: boolean;
+  token?: string;
+  message?: string;
+  data?: {
+    _id: string;
+    // ...autres champs utilisateur si besoin
+  };
+};
 
 export default function FormIn() {
   const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setLoading(true);
-    // TODO: Connecter à l'API
-    console.log("Login:", login, "Password:", password);
+    try {
+      const response = await api.post("/user/signin", { login, password });
+      const data = response.data as LoginResponse;
+      if (response.ok && data?.ok && data.token && data.data && data.data._id) {
+        await AsyncStorage.setItem("userId", data.data._id);
+        alert("Connexion réussie !");
+        router.replace('/hall_lsits'); // Redirection vers la page des listes
+      } else {
+        alert(data?.message || "Identifiants invalides");
+      }
+    } catch {
+      alert("Erreur réseau ou serveur");
+    }
     setLoading(false);
   };
-
-
 
   return (
     <KeyboardAvoidingView 
@@ -65,7 +89,7 @@ export default function FormIn() {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}> Pas de compte ? </Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/signup')}>
               <Text style={styles.link}>inscription</Text>
             </TouchableOpacity>
           </View>

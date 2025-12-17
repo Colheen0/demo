@@ -1,5 +1,12 @@
 import React, { useState } from "react";
+import { useRouter } from "expo-router";
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
+import { api } from "../api";
+// Définition du type de réponse attendu de l'API
+type SignupResponse = {
+  ok: boolean;
+  message?: string;
+};
 
 export default function FormUp() {
   const [name, setName] = useState("");
@@ -7,16 +14,30 @@ export default function FormUp() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
     if (password !== confirmPassword) {
       alert("Les mots de passe ne correspondent pas");
       return;
     }
-
+    if (!name || !login || !password) {
+      alert("Veuillez remplir tous les champs");
+      return;
+    }
     setLoading(true);
-    // TODO: Connecter à l'API
-    console.log("Name:", name, "Login:", login, "Password:", password);
+    try {
+      const response = await api.post("/user/signup", { login, name, password });
+      const data = response.data as SignupResponse;
+      if (response.ok && data?.ok) {
+        alert("Inscription réussie ! Connectez-vous.");
+        // TODO: Rediriger vers la page de connexion
+      } else {
+        alert(data?.message || "Erreur lors de l'inscription");
+      }
+    } catch {
+      alert("Erreur réseau ou serveur");
+    }
     setLoading(false);
   };
 
@@ -95,7 +116,7 @@ export default function FormUp() {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Vous avez déjà un compte ? </Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/') }>
               <Text style={styles.link}>Se connecter</Text>
             </TouchableOpacity>
           </View>
