@@ -1,14 +1,14 @@
-import { Text, View } from "react-native";
-export default function Index() {
+import UserInfo from "@/components/infos";
+
+export default function Compte() {
+  // TODO: Récupérer les données du compte depuis l'API
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text style={{fontSize: 18, color:"blue"}}>Connexion</Text>
-    </View>
+    <UserInfo
+      name="Jean Dupont"
+      login="jean@exemple.com"
+      password="motdepasse123"
+      nbLists={5}
+      nbTasks={23}
+    />
   );
 }

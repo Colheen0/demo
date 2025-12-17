@@ -1,17 +1,5 @@
-import Formulaire from "@/components/formulaire";
-import { Text, View } from "react-native";
+import FormUp from "@/components/form_up";
 
-export default function Index() {
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <Text style={{fontSize: 18, color:"blue"}}>Créer un compte</Text>
-      <Formulaire></Formulaire>
-    </View>
-  );
+export default function Signup() {
+  return <FormUp />;
 }
