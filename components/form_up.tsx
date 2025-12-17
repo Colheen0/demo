@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import { View, TextInput, TouchableOpacity, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { api } from "../api";
-// Définition du type de réponse attendu de l'API
+
 type SignupResponse = {
   ok: boolean;
   message?: string;
@@ -31,7 +31,7 @@ export default function FormUp() {
       const data = response.data as SignupResponse;
       if (response.ok && data?.ok) {
         alert("Inscription réussie ! Connectez-vous.");
-        // TODO: Rediriger vers la page de connexion
+
       } else {
         alert(data?.message || "Erreur lors de l'inscription");
       }

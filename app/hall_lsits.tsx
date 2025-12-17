@@ -62,6 +62,12 @@ export default function HallLists() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.headerRow}>
+        <View style={{ flex: 1 }} />
+        <TouchableOpacity onPress={() => router.push('/compte')} style={styles.accountIcon}>
+          <Ionicons name="person-circle-outline" size={32} color="#2c3e50" />
+        </TouchableOpacity>
+      </View>
       <ScrollView style={styles.scrollView}>
         <View style={styles.header}>
           <Text style={styles.title}>Mes Listes</Text>
@@ -155,5 +161,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 12,
     elevation: 8,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  accountIcon: {
+    marginLeft: 8,
   },
 });

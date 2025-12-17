@@ -1,24 +1,23 @@
-import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface UserInfoProps {
   name: string;
   login: string;
-  password: string;
-  nbLists: number;
-  nbTasks: number;
 }
-
-export default function UserInfo({ 
+export default function UserInfo({
   name, 
-  login, 
-  password, 
-  nbLists, 
-  nbTasks 
+  login
 }: UserInfoProps) {
-  const [showPassword, setShowPassword] = useState(false);
-  const maskedPassword = password ? "•".repeat(Math.min(password.length, 12)) : "••••••••";
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem("userId");
+    await AsyncStorage.removeItem("token");
+    router.replace("/");
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -53,67 +52,13 @@ export default function UserInfo({
             <Text style={[styles.value, styles.emailValue]}>{login}</Text>
           </View>
         </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.infoGroup}>
-          <View style={styles.infoRow}>
-            <View style={styles.infoLeft}>
-              <Ionicons name="lock-closed" size={20} color="#3498db" />
-              <Text style={styles.label}>Mot de passe</Text>
-            </View>
-            <View style={styles.passwordContainer}>
-              <Text style={styles.value}>
-                {showPassword ? password : maskedPassword}
-              </Text>
-              <TouchableOpacity 
-                style={styles.eyeButton}
-                onPress={() => setShowPassword(!showPassword)}
-              >
-                <Ionicons 
-                  name={showPassword ? "eye" : "eye-off"} 
-                  size={18} 
-                  color="#3498db" 
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
       </View>
 
-      {/* Stats Card */}
-      <View style={styles.statsCard}>
-        <Text style={styles.statsTitle}>Statistiques</Text>
-        
-        <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            <View style={styles.statIconContainer}>
-              <Ionicons name="list" size={24} color="#fff" />
-            </View>
-            <Text style={styles.statLabel}>Listes</Text>
-            <Text style={styles.statNumber}>{nbLists}</Text>
-          </View>
-
-          <View style={styles.statDivider} />
-
-          <View style={styles.statItem}>
-            <View style={styles.statIconContainer2}>
-              <Ionicons name="checkmark-circle" size={24} color="#fff" />
-            </View>
-            <Text style={styles.statLabel}>Tâches</Text>
-            <Text style={styles.statNumber}>{nbTasks}</Text>
-          </View>
-        </View>
-      </View>
+      {/* ... */}
 
       {/* Actions */}
       <View style={styles.actionsContainer}>
-        <TouchableOpacity style={styles.editButton}>
-          <Ionicons name="pencil" size={18} color="#fff" />
-          <Text style={styles.editButtonText}>Modifier le Compte</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.logoutButton}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Ionicons name="log-out" size={18} color="#e74c3c" />
           <Text style={styles.logoutButtonText}>Se Déconnecter</Text>
         </TouchableOpacity>
@@ -186,14 +131,6 @@ const styles = StyleSheet.create({
   emailValue: {
     marginRight: 8,
   },
-  passwordContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  eyeButton: {
-    padding: 4,
-  },
   divider: {
     height: 1,
     backgroundColor: "#e0e6ed",
@@ -262,26 +199,6 @@ const styles = StyleSheet.create({
   actionsContainer: {
     gap: 12,
     marginBottom: 20,
-  },
-  editButton: {
-    backgroundColor: "#3498db",
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    shadowColor: "#3498db",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  editButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
   },
   logoutButton: {
     backgroundColor: "#fadbd8",

@@ -5,6 +5,15 @@ import TaskItem from "@/components/task";
 import { useLocalSearchParams } from "expo-router";
 import { api } from "../api";
 
+// Types de réponses API
+interface TasksApiResponse {
+  tasks?: any[];
+}
+interface TaskApiResponse {
+  task?: any;
+  updatedTask?: any;
+}
+
 export default function List() {
   const { id: listId, name: listName } = useLocalSearchParams<{ id: string; name: string }>();
   const [tasks, setTasks] = useState<any[]>([]);
@@ -13,8 +22,9 @@ export default function List() {
     const fetchTasks = async () => {
       if (!listId) return;
       const response = await api.post("/task/tasks_by_list", { listId });
-      if (response.ok && response.data?.tasks) {
-        setTasks(response.data.tasks.map((t: any) => ({ id: t._id, name: t.name, completer: t.completer })));
+      const data = response.data as TasksApiResponse;
+      if (response.ok && data.tasks) {
+        setTasks(data.tasks.map((t: any) => ({ id: t._id, name: t.name, completer: t.completer })));
       }
     };
     fetchTasks();
@@ -22,18 +32,20 @@ export default function List() {
 
   const handleToggleTask = async (id: string, completer: boolean) => {
     const response = await api.patch("/task/update_task", { _id: id, completer });
-    if (response.ok && response.data?.updatedTask) {
+    const data = response.data as TaskApiResponse;
+    if (response.ok && data.updatedTask) {
       setTasks(tasks.map(task =>
-        task.id === id ? { ...task, completer: response.data.updatedTask.completer } : task
+        task.id === id ? { ...task, completer: data.updatedTask.completer } : task
       ));
     }
   };
 
   const handleUpdateTask = async (id: string, newName: string) => {
     const response = await api.patch("/task/update_task", { _id: id, new_name: newName });
-    if (response.ok && response.data?.updatedTask) {
+    const data = response.data as TaskApiResponse;
+    if (response.ok && data.updatedTask) {
       setTasks(tasks.map(task =>
-        task.id === id ? { ...task, name: response.data.updatedTask.name } : task
+        task.id === id ? { ...task, name: data.updatedTask.name } : task
       ));
     }
   };
@@ -41,8 +53,9 @@ export default function List() {
   const handleAddTask = async () => {
     if (!listId) return;
     const response = await api.post("/task/ajout_task", { name: "Nouvelle tâche", listId });
-    if (response.ok && response.data?.task) {
-      setTasks([...tasks, { id: response.data.task._id, name: response.data.task.name, completer: response.data.task.completer }]);
+    const data = response.data as TaskApiResponse;
+    if (response.ok && data.task) {
+      setTasks([...tasks, { id: data.task._id, name: data.task.name, completer: data.task.completer }]);
     }
   };
 
